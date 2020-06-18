@@ -1,10 +1,15 @@
-package main
+package controller
 
 import (
+	"context"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/jonas27test/jwt-backend/cmd/db"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var (
@@ -12,12 +17,12 @@ var (
 )
 
 func Test_Signup(t *testing.T) {
-	email := "jonas@test.t"
-	req, err := http.NewRequest("Post", "/signup", strings.NewReader("{\"email\":\""+email+"\", \"email\": \"jonas@web.de\"}"))
+	log.SetFlags(log.Lshortfile)
+	email := "jonas@test.tt"
+	req, err := http.NewRequest("Post", "/signup", strings.NewReader("{\"email\":\""+email+"\", \"password\": \"pass\"}"))
 	tFatal(t, err)
-	c := Controller{DB: dbConnection(dbURL)}
+	c := Controller{DB: db.DB{DB: db.Connection(dbURL)}}
 
-	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(c.Signup)
 	handler.ServeHTTP(rr, req)
@@ -31,6 +36,12 @@ func Test_Signup(t *testing.T) {
 		t.Errorf("handler returned unexpected body: got %v does not contain %v",
 			rr.Body.String(), email)
 	}
+
+	cleanup(c.DB.DB)
+}
+
+func cleanup(coll *mongo.Collection) {
+	coll.Drop(context.Background())
 }
 
 func tFatal(t *testing.T, err error) {
