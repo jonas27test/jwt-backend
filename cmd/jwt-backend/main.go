@@ -14,7 +14,8 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 
 	c := controller.Controller{DB: db.DB{DB: db.Connection(*dbURL)}}
-
+	http.HandleFunc("/verify", c.Verify)
+	http.HandleFunc("/signin", c.Signin)
 	http.HandleFunc("/signup", c.Signup)
 	// http.HandleFunc("/healthz", healthz)
 	log.Fatal(http.ListenAndServe(":8080", nil))

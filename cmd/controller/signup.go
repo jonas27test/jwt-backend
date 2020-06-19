@@ -9,20 +9,18 @@ import (
 )
 
 func (c *Controller) Signup(w http.ResponseWriter, r *http.Request) {
-	u := db.UserFromRequest(r)
-	if u.Email == "" {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	} else if u.Password == "" {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	}
+	u := db.UserFromRequest(w, r)
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), 14)
 	ifPanic(err)
 	u.Password = string(hash)
 
-	if c.DB.FetchUser(u.Email) != u {
+	if c.DB.FetchUser(u.Email) != (db.User{}) {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	if !c.DB.InsertUser(u) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}

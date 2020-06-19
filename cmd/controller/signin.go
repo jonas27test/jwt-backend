@@ -9,12 +9,10 @@ import (
 )
 
 func (c *Controller) Signin(w http.ResponseWriter, r *http.Request) {
-	u := db.UserFromRequest(r)
-	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), 14)
-	ifPanic(err)
-	u.Password = string(hash)
+	u := db.UserFromRequest(w, r)
 
-	if !c.DB.InsertUser(u) {
+	dbUser := c.DB.FetchUser(u.Email)
+	if bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(u.Password)) != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}

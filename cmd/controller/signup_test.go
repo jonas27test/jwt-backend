@@ -18,8 +18,9 @@ var (
 
 func Test_Signup(t *testing.T) {
 	log.SetFlags(log.Lshortfile)
-	email := "jonas@test.tt"
-	req, err := http.NewRequest("Post", "/signup", strings.NewReader("{\"email\":\""+email+"\", \"password\": \"pass\"}"))
+	email := "jonas@test.t"
+	pass := "pass"
+	req, err := http.NewRequest("Post", "/signin", strings.NewReader("{\"email\":\""+email+"\", \"password\": \""+pass+"\"}"))
 	tFatal(t, err)
 	c := Controller{DB: db.DB{DB: db.Connection(dbURL)}}
 
@@ -32,7 +33,7 @@ func Test_Signup(t *testing.T) {
 			status, http.StatusOK)
 	}
 
-	if strings.Contains(rr.Body.String(), email) {
+	if !strings.Contains(strings.TrimSpace(rr.Body.String()), email) {
 		t.Errorf("handler returned unexpected body: got %v does not contain %v",
 			rr.Body.String(), email)
 	}

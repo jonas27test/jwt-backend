@@ -28,7 +28,7 @@ func (db *DB) InsertUser(u User) bool {
 func (db *DB) FetchUser(email string) User {
 	var u User
 	filter := bson.D{{"email", email}}
-	err := db.DB.FindOne(context.TODO(), filter).Decode(&u)
+	err := db.DB.FindOne(context.Background(), filter).Decode(&u)
 	if err != nil {
 		return User{}
 	}
@@ -41,26 +41,21 @@ func (u *User) JsonString() string {
 	return string(b)
 }
 
-func UserFromRequest(r *http.Request) User {
-	var user User
-	err := json.NewDecoder(r.Body).Decode(&user)
+func UserFromRequest(w http.ResponseWriter, r *http.Request) User {
+	var u User
+	err := json.NewDecoder(r.Body).Decode(&u)
 	if err != nil {
 		log.Panicln(err)
-		return user
+		return u
 	}
-
-	if user.Email == "" {
-		// w.Write([]byte("Email is missing."))
-		// utils.RespondWithError(w, http.StatusBadRequest, error)
-		// return
+	if u.Email == "" {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		log.Panic("Email not set")
+	} else if u.Password == "" {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		log.Panic("Password not set")
 	}
-
-	if user.Password == "" {
-		// error.Message = "Password is missing."
-		// utils.RespondWithError(w, http.StatusBadRequest, error)
-		// return
-	}
-	return user
+	return u
 }
 
 //

@@ -1,19 +1,22 @@
 package db
 
 import (
+	"fmt"
 	"os"
+	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
 type JWT struct {
-	Token string `json:"token"`
+	Bearer string `json:"bearer"`
 }
 
 func (u *User) GenerateToken() JWT {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": u.Email,
-		"iss":   "tasker",
+		"iss":   "https://tasker.jonasburster.de",
+		"exp":   time.Now().Add(8760 * time.Hour).Format(time.RFC3339),
 	})
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
@@ -21,5 +24,19 @@ func (u *User) GenerateToken() JWT {
 		ifPanic(err)
 	}
 
-	return JWT{Token: tokenString}
+	return JWT{Bearer: tokenString}
+}
+
+func AuthToken(tokenString string) *jwt.Token {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("There was an error")
+		}
+		return []byte("secret"), nil
+	})
+	ifPanic(err)
+	if token.Valid {
+		return token
+	}
+	return nil
 }
