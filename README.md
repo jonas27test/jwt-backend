@@ -3,6 +3,9 @@ Improve error handling!!
 
 expects an ENV "SECRET"
 
-## krakend
 
-docker run -p 8080:8080 -v "${PWD}/krakend.json:/etc/krakend/krakend.json" devopsfaith/krakend run -d -c /etc/krakend/krakend.json
+```
+docker build -t jonas27test/jwt-backend .
+docker push jonas27test/jwt-backend
+docker run -p 8000:8080 -e SECRET='secret' jonas27test/jwt-backend
+```

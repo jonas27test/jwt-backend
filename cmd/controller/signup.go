@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/jonas27test/jwt-backend/cmd/db"
@@ -9,13 +9,14 @@ import (
 )
 
 func (c *Controller) Signup(w http.ResponseWriter, r *http.Request) {
+	log.Println("signup")
 	u := db.UserFromRequest(w, r)
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), 14)
 	ifPanic(err)
 	u.Password = string(hash)
 
-	if c.DB.FetchUser(u.Email) != (db.User{}) {
+	if c.DB.RetrieveUser(u.Email) != (db.User{}) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -25,6 +26,5 @@ func (c *Controller) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(u)
+	w.WriteHeader(http.StatusCreated)
 }

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -17,7 +18,9 @@ var (
 )
 
 func Test_Signup(t *testing.T) {
+	os.Setenv("SECRET", "test")
 	log.SetFlags(log.Lshortfile)
+
 	email := "jonas@test.t"
 	pass := "pass"
 	req, err := http.NewRequest("Post", "/signin", strings.NewReader("{\"email\":\""+email+"\", \"password\": \""+pass+"\"}"))
@@ -28,12 +31,12 @@ func Test_Signup(t *testing.T) {
 	handler := http.HandlerFunc(c.Signup)
 	handler.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != http.StatusOK {
+	if status := rr.Code; status != http.StatusCreated {
 		t.Errorf("handler returned wrong status code: got %v want %v",
 			status, http.StatusOK)
 	}
 
-	if !strings.Contains(strings.TrimSpace(rr.Body.String()), email) {
+	if rr.Body.String() != "" {
 		t.Errorf("handler returned unexpected body: got %v does not contain %v",
 			rr.Body.String(), email)
 	}

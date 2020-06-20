@@ -1,0 +1,23 @@
+# Dont use in production
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: auth
+  namespace: tasker
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /*
+spec:
+  tls:
+  - hosts:
+    - auth.jonasburster.de
+    - www.auth.jonasburster.de
+    secretName: auth-cert
+  rules:
+  - host: auth.jonasburster.de
+    http:
+      paths:
+      - path: /*
+        pathType: Prefix
+        backend:
+          serviceName: auth-backend
+          servicePort: 80

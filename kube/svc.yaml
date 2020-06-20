@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-backend
+  namespace: tasker
+  annotations:
+    cert-gen.name: auth-cert
+    cert-gen.namespace: tasker
+    cert-gen.dnsNames: "auth.jonasburster.de,www.auth.jonasburster.de"
+    cert-gen.issuer.name: letsencrypt-prod
+    cert-gen.issuer.kind: ClusterIssuer
+spec:
+  ports:
+  - port: 80
+    name: http
+    targetPort: auth-backend
+  selector:
+    app: auth-backend

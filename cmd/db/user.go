@@ -8,7 +8,12 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+type OID struct {
+	OID primitive.ObjectID `bson:"_id"`
+}
 
 type User struct {
 	Email    string `json:"email"`
@@ -16,7 +21,7 @@ type User struct {
 }
 
 func (db *DB) InsertUser(u User) bool {
-	if db.FetchUser(u.Email) == (User{}) {
+	if db.RetrieveUser(u.Email) == (User{}) {
 		ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 		_, err := db.DB.InsertOne(ctx, u)
 		ifPanic(err)
@@ -25,7 +30,7 @@ func (db *DB) InsertUser(u User) bool {
 	return false
 }
 
-func (db *DB) FetchUser(email string) User {
+func (db *DB) RetrieveUser(email string) User {
 	var u User
 	filter := bson.D{{"email", email}}
 	err := db.DB.FindOne(context.Background(), filter).Decode(&u)
@@ -33,6 +38,16 @@ func (db *DB) FetchUser(email string) User {
 		return User{}
 	}
 	return u
+}
+
+func (db *DB) RetrieveID(email string) string {
+	var oid OID
+	filter := bson.D{{"email", email}}
+	err := db.DB.FindOne(context.Background(), filter).Decode(&oid)
+	if err != nil {
+		return ""
+	}
+	return oid.OID.Hex()
 }
 
 func (u *User) JsonString() string {

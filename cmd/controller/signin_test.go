@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -12,7 +13,9 @@ import (
 )
 
 func Test_Signin(t *testing.T) {
+	os.Setenv("SECRET", "test")
 	log.SetFlags(log.Lshortfile)
+
 	email := "jonas@test.t"
 	pass := "pass"
 	req, err := http.NewRequest("Post", "/signin", strings.NewReader("{\"email\":\""+email+"\", \"password\": \""+pass+"\"}"))
@@ -33,7 +36,7 @@ func Test_Signin(t *testing.T) {
 			status, http.StatusOK)
 	}
 
-	if !strings.Contains(rr.Body.String(), "token") {
+	if !strings.Contains(rr.Body.String(), "bearer") {
 		t.Errorf("handler returned unexpected body: got %v does not contain %v",
 			rr.Body.String(), email)
 	}

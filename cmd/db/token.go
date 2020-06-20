@@ -12,6 +12,10 @@ type JWT struct {
 	Bearer string `json:"bearer"`
 }
 
+type ID struct {
+	ID string `json:"id"`
+}
+
 func (u *User) GenerateToken() JWT {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": u.Email,
@@ -27,16 +31,17 @@ func (u *User) GenerateToken() JWT {
 	return JWT{Bearer: tokenString}
 }
 
-func AuthToken(tokenString string) *jwt.Token {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+func AuthToken(tokenString string) map[string]interface{} {
+	claims := jwt.MapClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("There was an error")
 		}
-		return []byte("secret"), nil
+		return []byte(os.Getenv("SECRET")), nil
 	})
 	ifPanic(err)
 	if token.Valid {
-		return token
+		return claims
 	}
 	return nil
 }

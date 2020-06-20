@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"strings"
@@ -10,16 +9,17 @@ import (
 )
 
 func (c *Controller) Verify(w http.ResponseWriter, r *http.Request) {
+	log.Println("verify")
 	authHeader := r.Header.Get("Authorization")
 	headerToken := strings.Split(authHeader, " ")
 	if len(headerToken) == 2 {
-		token := db.AuthToken(headerToken[1])
-		if token != nil {
+		claims := db.AuthToken(headerToken[1])
+		if claims == nil {
 			log.Panicln("token not correct")
 		}
+
 		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(token.Claims)
+		return
 	}
 	log.Panicln("no token")
 }
